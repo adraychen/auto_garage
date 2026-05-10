@@ -1,0 +1,13 @@
+# Credentials
+credentials.json
+token.json
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.pytest_cache/
+
+# OS
+.DS_Store
