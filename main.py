@@ -13,14 +13,12 @@ from googleapiclient.discovery import build
 app = FastAPI()
 
 # --- 1. CONFIGURATION ---
-# These are pulled from Render Environment Variables
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_KEY")  # Use the 'service_role' key
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # Initialize Clients
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
-model = GroqModel('llama-3.3-70b-versatile', api_key=GROQ_API_KEY)
+model = GroqModel('llama-3.3-70b-versatile')
 
 # --- 2. GMAIL SERVICE ---
 def get_gmail_service():
