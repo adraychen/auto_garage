@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-pydantic-ai
+pydantic-ai[groq]
 supabase
 google-api-python-client
 google-auth-httplib2
