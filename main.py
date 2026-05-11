@@ -22,7 +22,6 @@ model = GroqModel('llama-3.3-70b-versatile')
 
 # --- 2. GMAIL SERVICE ---
 def get_gmail_service():
-    # token.json must be added as a 'Secret File' in Render
     if os.path.exists('token.json'):
         creds = Credentials.from_authorized_user_file('token.json')
         return build('gmail', 'v1', credentials=creds)
@@ -66,7 +65,6 @@ def tool_price_lookup(ctx, service_name: str):
 
 # --- 4. THE BACKGROUND ENGINE ---
 def process_emails():
-    # Wait for the server to spin up
     time.sleep(15)
     print("Agent Thread Started: Listening for Gmail inquiries...")
     
@@ -76,19 +74,20 @@ def process_emails():
             results = service.users().messages().list(userId='me', q='is:unread').execute()
             messages = results.get('messages', [])
 
+            print(f"Debug: Found {len(messages)} unread emails")
+
             for m in messages:
                 msg = service.users().messages().get(userId='me', id=m['id']).execute()
                 
-                # Extract details
                 headers = msg.get('payload', {}).get('headers', [])
                 subject = next((h['value'] for h in headers if h['name'] == 'Subject'), "No Subject")
                 sender = next((h['value'] for h in headers if h['name'] == 'From'), "Unknown")
                 snippet = msg.get('snippet', "")
 
-                # Run Agent Logic
+                print(f"Debug: Processing email from {sender}, subject: {subject}")
+
                 result = agent.run_sync(f"From: {sender}\nSubject: {subject}\nMessage: {snippet}")
 
-                # Create Draft
                 email_msg = EmailMessage()
                 email_msg.set_content(result.output)
                 email_msg['To'] = sender
@@ -97,7 +96,6 @@ def process_emails():
                 
                 service.users().drafts().create(userId='me', body={'message': {'raw': raw_draft}}).execute()
 
-                # Mark as Read (Remove UNREAD label)
                 service.users().messages().batchModify(
                     userId='me', 
                     body={'ids': [m['id']], 'removeLabelIds': ['UNREAD']}
@@ -107,11 +105,12 @@ def process_emails():
 
         except Exception as e:
             print(f"Background Loop Error: {e}")
-        
-        time.sleep(120) # Poll every 2 minutes
+
+        print("Debug: Sleeping for 120 seconds...")
+        time.sleep(120)
 
 # --- 5. ENDPOINTS ---
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def home():
     # cron-job.org hits this to keep the service awake
     return {"status": "Garage Agent Active", "location": "Markham/GTA", "engine": "Groq Llama 3.3"}
