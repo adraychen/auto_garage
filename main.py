@@ -84,7 +84,7 @@ def process_emails():
 
                 # Create Draft
                 email_msg = EmailMessage()
-                email_msg.set_content(result.data)
+                email_msg.set_content(result.output)
                 email_msg['To'] = sender
                 email_msg['Subject'] = f"Re: {subject}"
                 raw_draft = base64.urlsafe_b64encode(email_msg.as_bytes()).decode()
