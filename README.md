@@ -12,4 +12,4 @@ An automated assistant for auto garages that reads Gmail inquiries, looks up pri
      - `SUPABASE_URL`
      - `SUPABASE_KEY`
      - `INFERENCE_API_KEY`
-4. **Cron-job.org:** Ping your Render URL every 12 minutes to keep the Free Tier awake.
+4. **Cron-job.org:** Ping your Render URL every 1 minutes to keep the Free Tier awake.
