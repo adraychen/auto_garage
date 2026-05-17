@@ -42,15 +42,15 @@ PRODUCT_ALIASES = {
         "sensitive teeth paste, whitening paste, cavity protection, teeth gel, dental paste, "
         "the red tube, the white tube, gum protection paste"
     ),
-    "Toilet Paper - Double Roll - 8 Pack": (
+    "Toilet Paper - 8 Pack": (
         "toilet paper, TP, tissue roll, bathroom tissue, 2-ply, two-ply, Charmin, Scott, "
         "bathroom rolls, white rolls, bathroom paper, the rolls, soft tissue"
     ),
-    "Hand Sanitizer": (
+    "Hand Sanitizer 300 mL": (
         "hand gel, sanitizer gel, sanitiser gel, alcohol gel, Purell, COVID gel, hand rub, "
         "hygiene gel, disinfectant gel, clear gel, antibacterial gel, sanitizer"
     ),
-    "Laundry Detergent": (
+    "Laundry Detergent 1.8 L": (
         "laundry soap, washing liquid, Tide, Gain, Ariel, pods, capsules, clothes cleaner, "
         "washing powder, laundry stuff, detergent, stain remover wash, laundry liquid"
     ),
