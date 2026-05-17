@@ -347,7 +347,7 @@ def compose_reply(customer_name, confirmed_items, out_of_stock_items,
             lines.append(f"  - {item['product_name']}  x{item['quantity']}  @ ${item['unit_price']:.2f} each")
             original = item.get('original_request', '')
             
-             if original and original.lower() not in item['product_name'].lower():
+            if original and original.lower() not in item['product_name'].lower():
                     is_pack_product = "pack" in item['product_name'].lower() or "roll" in item['product_name'].lower()
                     if is_pack_product:
                         lines.append(
