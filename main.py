@@ -204,7 +204,7 @@ Return ONLY a valid JSON object with this exact structure:
 {{
   "customer_name": "name from email or Valued Customer if not found",
   "items_requested": [
-    {{"product_name": "exact product name from our inventory", "quantity": number}}
+    {{"product_name": "exact product name from our inventory", "quantity": number, "original_request": "what the customer originally asked for in their own words"}}
   ],
   "items_not_found": ["items the customer asked for that do not match any of our products"]
 }}
@@ -342,13 +342,18 @@ def compose_reply(customer_name, confirmed_items, out_of_stock_items,
     if confirmed_items:
         lines.append("CONFIRMED ITEMS:")
         for item in confirmed_items:
-            lines.append(
-                f"  - {item['product_name']}  "
-                f"x{item['quantity']}  "
-                f"@ ${item['unit_price']:.2f} each"
-            )
+            lines.append(f"  - {item['product_name']}  x{item['quantity']}  @ ${item['unit_price']:.2f} each")
+            original = item.get('original_request', '')
+            if original and original.lower() not in item['product_name'].lower():
+                lines.append(
+                    f"    Note: You requested {original}. We offer this product in "
+                    f"{item['product_name'].split('-')[-1].strip()} bundles — "
+                    f"we have processed {item['quantity']} pack "
+                    f"({'s' if item['quantity'] > 1 else ''}"
+                    f"{item['product_name'].split('-')[-1].strip()}) for your order."
+                )
         lines.append("")
-
+                      
     if out_of_stock_items:
         lines.append("INSUFFICIENT STOCK:")
         for item in out_of_stock_items:
