@@ -293,10 +293,11 @@ def process_order(interpretation, inventory, sender):
             .execute()
 
         confirmed_items.append({
-            'order_id':     order.data[0]['id'],
-            'product_name': product_name,
-            'quantity':     quantity,
-            'unit_price':   product['price'],
+            'order_id':        order.data[0]['id'],
+            'product_name':    product_name,
+            'quantity':        quantity,
+            'unit_price':      product['price'],
+            'original_request': item.get('original_request', ''),
         })
 
     return customer_name, confirmed_items, out_of_stock_items, items_not_found
