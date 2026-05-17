@@ -214,7 +214,8 @@ Rules:
 - Use the exact product name as listed in our inventory
 - If two descriptions refer to the same product, combine them into one entry with added quantities
 - Quantity must always be a whole number (integer). Never use decimals or fractions.
-- If the customer describes a quantity in individual units (e.g. "6 rolls" for an 8-pack product), round up to the nearest whole pack. For example, 6 rolls of an 8-pack = 1 pack.
+- If the customer uses a generic unit word like "units", "pieces", "items", or "bottles", treat the number as the exact quantity requested. For example, "6 units" = quantity 6.
+- Only round up to packs when the customer describes individual components of a known pack (e.g. "6 rolls" for a product sold in 8-roll packs).
 - Brand names like Charmin, Colgate, Tide are preferences, not separate products. Do not put them in items_not_found.
 - If no quantity is mentioned, assume 1
 - Put only items that are completely unrelated to our inventory in items_not_found
@@ -345,14 +346,22 @@ def compose_reply(customer_name, confirmed_items, out_of_stock_items,
         for item in confirmed_items:
             lines.append(f"  - {item['product_name']}  x{item['quantity']}  @ ${item['unit_price']:.2f} each")
             original = item.get('original_request', '')
-            if original and original.lower() not in item['product_name'].lower():
-                lines.append(
-                    f"    Note: You requested {original}. We offer this product in "
-                    f"{item['product_name'].split('-')[-1].strip()} bundles — "
-                    f"we have processed {item['quantity']} pack "
-                    f"({'s' if item['quantity'] > 1 else ''}"
-                    f"{item['product_name'].split('-')[-1].strip()}) for your order."
-                )
+            
+             if original and original.lower() not in item['product_name'].lower():
+                    is_pack_product = "pack" in item['product_name'].lower() or "roll" in item['product_name'].lower()
+                    if is_pack_product:
+                        lines.append(
+                            f"    Note: You requested {original}. We offer this product in "
+                            f"{item['product_name'].split('-')[-1].strip()} — "
+                            f"we have processed {item['quantity']} "
+                            f"pack{'s' if item['quantity'] > 1 else ''} for your order."
+                        )
+                    else:
+                        lines.append(
+                            f"    Note: You requested {original}. "
+                            f"We have processed {item['quantity']} "
+                            f"unit{'s' if item['quantity'] > 1 else ''} of {item['product_name']} for your order."
+                        )   
         lines.append("")
                       
     if out_of_stock_items:
