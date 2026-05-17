@@ -80,8 +80,8 @@ def build_invoice_pdf(invoice_number, customer_name, customer_email,
 
     # --- Header ---
     el.append(Paragraph("<b>HomeBasics Co.</b>", styles['Title']))
-    el.append(Paragraph("123 Main Street, Toronto, ON  M1A 1A1", styles['Normal']))
-    el.append(Paragraph("orders@homebasics.co  |  (416) 555-0100", styles['Normal']))
+    # el.append(Paragraph("123 Main Street, Toronto, ON  M1A 1A1", styles['Normal']))
+    # el.append(Paragraph("orders@homebasics.co  |  (416) 555-0100", styles['Normal']))
     el.append(Spacer(1, 0.25 * inch))
 
     # --- Invoice meta ---
