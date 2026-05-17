@@ -213,8 +213,11 @@ Rules:
 - Only put products that exist in our inventory in items_requested
 - Use the exact product name as listed in our inventory
 - If two descriptions refer to the same product, combine them into one entry with added quantities
+- Quantity must always be a whole number (integer). Never use decimals or fractions.
+- If the customer describes a quantity in individual units (e.g. "6 rolls" for an 8-pack product), round up to the nearest whole pack. For example, 6 rolls of an 8-pack = 1 pack.
+- Brand names like Charmin, Colgate, Tide are preferences, not separate products. Do not put them in items_not_found.
 - If no quantity is mentioned, assume 1
-- Put anything not in our inventory in items_not_found
+- Put only items that are completely unrelated to our inventory in items_not_found
 - Return ONLY the JSON object, no explanation or extra text"""
 
     response = groq_client.chat.completions.create(
