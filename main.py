@@ -358,6 +358,53 @@ def generate_invoice_fn(orders_json: str, customer_email: str, customer_name: st
 # ============================================================
 # 5. AGENT
 # ============================================================
+# agent = Agent(
+#     model,
+#     system_prompt=(
+#         "You are the Sales Order Operator for HomeBasics Co., a wholesale supplier in Ontario, Canada.\n"
+#         "Process every customer order email by following these steps in order:\n\n"
+
+#         "STEP 1 — INTERPRET\n"
+#         "Extract every product and quantity the customer is requesting.\n"
+#         "Customers may use brand names, informal names, or vague descriptions.\n"
+#         "Map them to our four products: Toothpaste, Toilet Paper, Hand Sanitizer, Laundry Detergent.\n"
+#         "Also extract the customer's name from the email signature or greeting. "
+#         "If you cannot find a name, use 'Valued Customer'.\n\n"
+
+#         "STEP 2 — CHECK INVENTORY\n"
+#         "For every product identified, call tool_check_inventory(product_description, quantity).\n"
+#         "Use the customer's own words as the product_description so the fuzzy matcher can work.\n\n"
+
+#         "STEP 3 — CREATE ORDERS\n"
+#         "For each product that is available, call tool_create_order("
+#         "product_id, product_name, unit_price, quantity, customer_email, customer_name).\n"
+#         "Use the product_id and unit_price returned by tool_check_inventory.\n\n"
+
+#         "STEP 4 — GENERATE INVOICE\n"
+#         "Once all available items have orders created, call tool_generate_invoice with:\n"
+#         "  orders_json: a JSON array string like "
+#         '[{"order_id":"...","product_name":"...","quantity":N,"unit_price":N.NN}, ...]\n'
+#         "  customer_email: the sender's email address\n"
+#         "  customer_name: the name extracted in Step 1\n\n"
+
+#         "STEP 5 — COMPOSE REPLY\n"
+#         "Write a professional email reply that includes:\n"
+#         "- A greeting using the customer's name\n"
+#         "- Confirmation of all items ordered and their quantities\n"
+#         "- If any item was out of stock, clearly apologise and state what was available\n"
+#         "- The full invoice inline, exactly as returned by tool_generate_invoice\n"
+#         "- A note that a PDF invoice is attached\n"
+#         "- A payment deadline reminder\n"
+#         "- Sign off as 'HomeBasics Co. Sales Team'\n\n"
+
+#         "RULES:\n"
+#         "- Never skip the inventory check\n"
+#         "- Never fabricate prices or order IDs\n"
+#         "- Always process ALL products before generating the invoice\n"
+#         "- If you cannot identify a product, ask the customer to clarify in your reply"
+#     ),
+# )
+
 agent = Agent(
     model,
     system_prompt=(
@@ -368,17 +415,19 @@ agent = Agent(
         "Extract every product and quantity the customer is requesting.\n"
         "Customers may use brand names, informal names, or vague descriptions.\n"
         "Map them to our four products: Toothpaste, Toilet Paper, Hand Sanitizer, Laundry Detergent.\n"
-        "Also extract the customer's name from the email signature or greeting. "
+        "IMPORTANT: If multiple descriptions from the customer map to the SAME product, "
+        "treat them as one request and add the quantities together. "
+        "For example, 'mint paste' and 'sensitive teeth one' are both Toothpaste — combine them.\n"
+        "If no quantity is specified for an item, assume 1.\n"
+        "Extract the customer's name from the email signature or greeting. "
         "If you cannot find a name, use 'Valued Customer'.\n\n"
 
         "STEP 2 — CHECK INVENTORY\n"
-        "For every product identified, call tool_check_inventory(product_description, quantity).\n"
-        "Use the customer's own words as the product_description so the fuzzy matcher can work.\n\n"
+        "For every UNIQUE product identified, call tool_check_inventory once with "
+        "the combined quantity. Never call tool_check_inventory twice for the same product.\n\n"
 
         "STEP 3 — CREATE ORDERS\n"
-        "For each product that is available, call tool_create_order("
-        "product_id, product_name, unit_price, quantity, customer_email, customer_name).\n"
-        "Use the product_id and unit_price returned by tool_check_inventory.\n\n"
+        "For each available product, call tool_create_order once with the combined quantity.\n\n"
 
         "STEP 4 — GENERATE INVOICE\n"
         "Once all available items have orders created, call tool_generate_invoice with:\n"
@@ -398,13 +447,13 @@ agent = Agent(
         "- Sign off as 'HomeBasics Co. Sales Team'\n\n"
 
         "RULES:\n"
+        "- Never output raw function calls or tool syntax in your reply\n"
         "- Never skip the inventory check\n"
         "- Never fabricate prices or order IDs\n"
-        "- Always process ALL products before generating the invoice\n"
+        "- Always process ALL unique products before generating the invoice\n"
         "- If you cannot identify a product, ask the customer to clarify in your reply"
     ),
 )
-
 
 @agent.tool
 def tool_check_inventory(ctx, product_description: str, quantity: int):
@@ -465,10 +514,18 @@ def process_emails():
                 invoice_number = invoice_data.get('invoice_number', 'N/A')
 
                 # Build MIME email (inline text + optional PDF attachment)
+                quoted_body = "\n".join(f"> {line}" for line in body.splitlines())
+                full_reply = (
+                    f"{reply_text}\n\n"
+                    f"{'─' * 55}\n"
+                    f"On {datetime.now().strftime('%B %d, %Y')}, {sender} wrote:\n\n"
+                    f"{quoted_body}"
+                )
+
                 mime_msg = MIMEMultipart()
                 mime_msg['To']      = sender
                 mime_msg['Subject'] = f"Re: {subject}"
-                mime_msg.attach(MIMEText(reply_text, 'plain'))
+                mime_msg.attach(MIMEText(full_reply, 'plain'))
 
                 if pdf_bytes:
                     attachment = MIMEBase('application', 'pdf')
